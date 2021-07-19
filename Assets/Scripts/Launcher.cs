@@ -16,6 +16,7 @@ public class Launcher : MonoBehaviourPunCallbacks
     private GameObject progressPanel;
 
     string gameVersion = "1";
+    bool isConnecting;
 
 
 
@@ -35,12 +36,14 @@ public class Launcher : MonoBehaviourPunCallbacks
     void Update()
     {
         
+
     }
 
     public void Connect()
     {
         controlPanel.SetActive(false);
         progressPanel.SetActive(true);
+        isConnecting = true;
         if(PhotonNetwork.IsConnected)
         {
             PhotonNetwork.JoinRandomRoom();
@@ -56,7 +59,10 @@ public class Launcher : MonoBehaviourPunCallbacks
     {
         Debug.Log("Connect() 성공... JoinRandomRoom() 실행 중...");
 
-        PhotonNetwork.JoinRandomRoom();
+        if (isConnecting)
+        {
+            PhotonNetwork.JoinRandomRoom();
+        }
     }
 
     public override void OnDisconnected(DisconnectCause cause)
@@ -75,6 +81,19 @@ public class Launcher : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom()
     {
-        Debug.Log("PUN Basics Tutorial/Launcher: OnJoinedRoom() called by PUN. Now this client is in a room.");
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount == maxPlayersPerRoom)
+        {
+            PhotonNetwork.CurrentRoom.IsOpen = false;
+            PhotonNetwork.LoadLevel("InGameScene");
+        }
+    }
+
+    public override void OnPlayerEnteredRoom(Player newPlayer)
+    {
+        if (PhotonNetwork.IsMasterClient && PhotonNetwork.CurrentRoom.PlayerCount == maxPlayersPerRoom)
+        {
+            PhotonNetwork.CurrentRoom.IsOpen = false;
+            PhotonNetwork.LoadLevel("InGameScene");
+        }
     }
 }
